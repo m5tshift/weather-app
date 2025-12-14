@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        input {
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            width: 250px;
+            margin-right: 10px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .weather-info {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .city-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .temperature {
+            font-size: 48px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+        }
+        
+        .feels-like {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .location {
+            font-size: 16px;
+            color: #34495e;
+        }
+        
+        .loading {
+            display: none;
+            font-size: 18px;
+            color: #3498db;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        
+        <div class="input-group">
+            <input type="text" id="cityInput" placeholder="Введите название города" value="Москва">
+            <button onclick="getWeather()">Узнать погоду</button>
+        </div>
+        
+        <div class="loading" id="loading">Загрузка данных о погоде...</div>
+        <div class="error" id="error"></div>
+        
+        <div class="weather-info" id="weatherInfo">
+            <div class="city-name" id="cityName"></div>
+            <div class="temperature" id="temperature"></div>
+            <div class="feels-like" id="feelsLike"></div>
+            <div class="location" id="location"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('cityInput').value = 'Москва';
+            getWeather();
+        });
+
+        async function getWeather() {
+            const city = document.getElementById('cityInput').value.trim();
+            const loadingDiv = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const weatherInfoDiv = document.getElementById('weatherInfo');
+            
+            if (!city) {
+                showError('Введите название города');
+                return;
+            }
+
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+            weatherInfoDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`/temperature?city=${encodeURIComponent(city)}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayWeather(data);
+                } else {
+                    showError(data.error || 'Ошибка при получении данных о погоде');
+                }
+            } catch (error) {
+                showError('Ошибка сети: ' + error.message);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function displayWeather(data) {
+            document.getElementById('cityName').textContent = `${data.city}, ${data.country}`;
+            document.getElementById('temperature').textContent = `${data.temperature_c}°C`;
+            document.getElementById('feelsLike').textContent = `Ощущается как: ${data.feelslike_c}°C`;
+            document.getElementById('location').textContent = `Регион: ${data.region}`;
+
+            document.getElementById('weatherInfo').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('weatherInfo').style.display = 'none';
+        }
+
+        document.getElementById('cityInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                getWeather();
+            }
+        });
+    </script>
+</body>
+</html>
