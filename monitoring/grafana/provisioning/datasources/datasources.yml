@@ -6,9 +6,3 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
-
-providers:
-  - name: "default"
-    type: file
-    options:
-      path: /etc/grafana/provisioning/dashboards
